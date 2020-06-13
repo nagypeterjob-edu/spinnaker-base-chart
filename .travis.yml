@@ -1,7 +1,8 @@
-language: minimal
+language: python
+python:
+  - "3.6"
 
-before_install:
-  - sudo apt-get -y install python3-pip
+install:
   - pip install --upgrade pip
   - pip install awscli
 
