@@ -1,5 +1,9 @@
 language: minimal
 
+before_install:
+  - sudo apt-get -y install pip3
+  - pip3 install awscli
+
 jobs:
   include:
     - stage: build & push master
