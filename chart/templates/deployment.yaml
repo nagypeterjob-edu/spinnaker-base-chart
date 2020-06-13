@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: {{ .Values.serviceName }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+  name: {{ .Values.serviceName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  progressDeadlineSeconds: {{ .Values.progressDeadlineSeconds | default 600 }}
+  replicas: {{ .Values.replicas.min | default 3 }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 5 }}
+  selector:
+    matchLabels:
+      name: {{ .Values.serviceName }}
+      {{- range $key, $value := .Values.labels }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+    {{- if eq ( .Values.replicas.min | int ) 1  }}
+      maxSurge: 100%
+      maxUnavailable: 0
+    {{ else }}
+      maxSurge: {{ .Values.rollingUpdate.maxSurge | default "30%" }}
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailable  | default "30%" }}
+    {{- end }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "{{ .Values.sideCars.istio.enabled | default false }}"
+      labels:
+        name: {{ .Values.serviceName }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+    spec:
+      containers:
+      - env:
+        {{- range $key, $value := .Values.environmentVariables }}
+        - name: {{ $key }}
+          value: "{{ $value }}"
+        {{- end }}
+        image: {{ .Values.spinnaker.chart.variables.dockerRegistryDomain }}/{{ .Values.spinnaker.chart.variables.dockerRegistryOrg }}/{{ .Values.serviceName }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: {{ .Values.healthy.path | default "/healthz" }}
+            port:  {{ .Values.targetPort }}
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: {{ .Values.serviceName }}
+        ports:
+        - containerPort: {{ .Values.targetPort }}
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: {{ .Values.healthy.path | default "/healthz" }}
+            port:{{ .Values.targetPort }}
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: 
+{{ toYaml .Values.resources | trimSuffix "\n" | indent 10 }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: {{ if (.Values.sideCars.istio.enabled | default false) }}ClusterFirst{{ else }}{{ .Values.dnsPolicy | default "Default" }} {{ end }}
+      imagePullSecrets:
+        {{ toYaml .Values.imagePullSecrets | trimSuffix "\n" }}
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

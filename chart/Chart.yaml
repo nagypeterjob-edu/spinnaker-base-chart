@@ -1,0 +1,7 @@
+name: spinnaker-base
+version: 1.0.0 
+description: Base service chart for deployments.
+maintainers:
+  - name: Peter Nagy
+    email: nagypeterjob@gmail.com
+    url: https://github.com/nagypeterjob

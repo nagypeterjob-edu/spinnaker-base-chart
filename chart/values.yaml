@@ -1,0 +1,32 @@
+namespace:
+serviceName:
+environment:
+
+labels:
+  role: deployment
+
+port: 8080
+
+replicaCount: 2
+
+environmentVariables: {}
+
+targetPort: []
+
+healthy:
+  path: /healthz
+  port: 8080
+
+sideCars:
+  istio:
+    enabled: true
+
+rollingUpdate:
+  maxSurge:
+  maxUnavailable:
+
+imagePullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+dnsPolicy: Default

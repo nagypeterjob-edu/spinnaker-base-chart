@@ -1,0 +1,10 @@
+language: minimal
+
+jobs:
+  include:
+    - stage: build & push master
+      if: tag =~ ^v(\d+.?)+.*$
+      script:
+      - mkdir ./${TRAVIS_TAG};
+      - tar -czvf ${TRAVIS_TAG}/chart.tgz chart;
+      - aws s3 sync ./${TRAVIS_TAG} s3://${AWS_S3_BUCKET}/charts/${TRAVIS_TAG}

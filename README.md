@@ -1,2 +1,2 @@
 # spinnaker-base-chart
-Base Helm chart for k8s deployments.
+Base Helm 2 chart for k8s deployments.
