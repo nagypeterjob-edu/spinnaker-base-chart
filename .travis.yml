@@ -23,5 +23,4 @@ deploy:
   skip_cleanup: true
   local_dir: ./${TRAVIS_TAG}
   on:
-    condition: ${TRAVIS_BRANCH} =~ ^v(\d+.?)+.*$
     tags: true
